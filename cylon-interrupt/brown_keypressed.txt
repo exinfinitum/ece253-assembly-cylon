@@ -1,0 +1,29 @@
+.extern	KEY_PRESSED						/* externally defined variable */
+/***************************************************************************************
+ * KEY - Interrupt Service Routine                                
+ * ISR writes contents of KEY edgecature register to global variable KEY_PRESSED
+****************************************************************************************/
+	.global	KEY_ISR
+KEY_ISR:
+	subi		sp, sp, 12					/* reserve space on the stack */
+   stw		ra, 0(sp)
+   stw		r10, 4(sp)
+   stw		r11, 8(sp)
+
+	movia		r10, 0x10000050			/* base address of pushbutton KEY parallel port */
+	ldwio		r11, 0xC(r10)				/* read edge capture register */
+	stwio		r0,  0xC(r10)				/* clear the interrupt */                  
+
+	movia		r10, KEY_PRESSED			/* global variable to return the result */
+	stw		r11, 0(r10)					/* return KEY1 value */
+
+END_KEY_ISR:
+   ldw		ra,  0(sp)					/* Restore all used register to previous */
+   ldw		r10, 4(sp)
+   ldw		r11, 8(sp)
+   addi		sp,  sp, 12
+
+	ret
+	.end
+	
+

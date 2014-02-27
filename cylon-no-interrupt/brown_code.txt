@@ -1,0 +1,48 @@
+	#Stephen Brown's Code from Lecture
+		#Stephen Brown's Code from Lecture
+	
+	#
+	
+	.text
+	.global _start
+_start:	movia r16, 0x10000000 #r16 is ledr
+		movia r20, 0x10000020 #r20 is HEX0...3
+		movia r15, 0x10000040 #r15 is SW
+		movia r17, 0x10000050 #r18 is KEYS
+		ldw r6, HEX_BITS(r0) #r6 is init pattern
+		movia r18, 0x10002000 #r18 is timer
+		
+		movia r12, DELAY_TIME
+		ldw r12, (r12) #this is delay
+		sthio r12, 8(r18) #store low half of counter
+		srli r12, r12, 16 #shift the register
+		sthio r12, 0xc(r18) #store high half of counter
+		movi r19, 0b0110 #START = 1, CONT = 1
+		sthio r19, 4(r18) #store into control reg.
+DO_DISPLAY:
+		ldwio r4, (r15) #r4 is SW
+		stwio r4, (r16) #write to LEDR
+		ldw r5, (r17) #r5 is KEYS
+		beq r5, r0, NO_KEY
+KEY:
+		mov r6, r4 #use SW as pattern
+WAIT:	ldwio r5, (r17) # wait for slow meatbag
+		bne r5, r0, WAIT
+NO_KEY:	stwio r6, (r20) #write to our HEX displays
+		roli r6, r6, 1 #(rotate the shift reg by one digit - this is like srli, but we wrap around edges)
+		#ldw r7, DELAY_VALUE(r0)
+DELAY:	ldhio r7, (r18) #read status reg
+		andi r7, r7, 1 #check TO bit
+		beq r7, r0, DELAY
+		sthio r7, (r18) #clear TO bit to 0!
+		br DO_DISPLAY
+
+		
+		
+		
+	.data
+
+HEX_BITS:
+	.word 0xf
+DELAY_TIME:
+	.word 25000000
